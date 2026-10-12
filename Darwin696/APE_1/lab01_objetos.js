@@ -2,7 +2,7 @@ const { getMemoryUsage } = require('./profiler');
 
 const N = 1000000; // 1 millón de registros
 const memoriaInicial = getMemoryUsage();
-
+https://github.com/TheJavier37/Repositorio_Estructura_De_Datos/tree/ape-01/Darwin696
 // TDA: Coordenada basada en Objetos
 class CoordenadaObj {
   constructor(lat, lng) {
