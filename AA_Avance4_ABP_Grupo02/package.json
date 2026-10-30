@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "node --test tests/navegacion.test.js"
+    "test": "node --test tests/navegacion.test.js tests/triaje.test.js"
   },
   "engines": { "node": ">=18" },
   "license": "ISC"
