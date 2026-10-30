@@ -3,6 +3,7 @@
  * Estructura de Datos - Carrera de Computación, UNL
  *
  * Ejecución (la bandera expone global.gc): node --expose-gc lab03_gc_force.js
+ 
  */
 const { performance } = require('perf_hooks');
 
