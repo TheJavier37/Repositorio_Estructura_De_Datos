@@ -1,18 +1,12 @@
 {
-    "name": "aa_avance4_abp_grupo02",
-    "version": "1.0.0",
-    "description": "Avance 4 ABP - Implementación de Navegación Bidireccional (ListaDoble)",
-    "main": "src/index.js",
-    "scripts": {
-        "test": "node --test tests/navegacion.test.js",
-        "start": "node src/index.js"
-    },
-    "keywords": [
-        "lista-doble",
-        "estructuras-de-datos",
-        "javascript",
-        "node"
-    ],
-    "author": "Grupo 02",
-    "license": "ISC"
+  "name": "aa-avance4-abp-grupo02",
+  "version": "1.0.0",
+  "description": "Avance 4 ABP - Navegación bidireccional con lista doblemente enlazada (Estructura de Datos, UNL)",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test tests/navegacion.test.js"
+  },
+  "engines": { "node": ">=18" },
+  "license": "ISC"
 }
