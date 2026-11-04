@@ -1,15 +1,12 @@
-/**
- * Clase que representa un Nodo con referencia bidireccional.
- */
-class NodoDoble {
-  /**
-   * @param {Object} dato - Objeto de dominio del proyecto ABP.
-   */
-  constructor(dato) {
-    this.dato = dato;
-    this.siguiente = null;
-    this.anterior = null;
-  }
+const { Paciente } = require('./Paciente.js');
+
+class NodoPaciente {
+    constructor(paciente) {
+        this.paciente = paciente;
+        this.siguiente = null;
+        this.anterior = null;
+    }
 }
 
-module.exports = NodoDoble;
+// Exportamos el nodo para usarlo en otros archivos
+module.exports = { NodoPaciente };
