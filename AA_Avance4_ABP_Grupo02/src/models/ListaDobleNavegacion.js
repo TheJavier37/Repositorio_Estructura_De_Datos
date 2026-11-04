@@ -9,7 +9,9 @@ class ListaDobleNavegacion {
    *        Al superarlo se descarta el registro más antiguo (control de memoria en el heap).
    */
   constructor(capacidadMaxima = Infinity) {
+    // Validación: una lista con capacidad 0 o negativa no podría guardar ningún registro.
     if (capacidadMaxima < 1) throw new RangeError('La capacidad máxima debe ser >= 1');
+    // Infinity (valor por defecto) significa "sin límite": la lista se comporta como antes.
     this.capacidadMaxima = capacidadMaxima;
     this.cabeza = null;
     this.cola = null;
@@ -34,6 +36,8 @@ class ListaDobleNavegacion {
       this.cola = nuevoNodo;
     }
     this.longitud++;
+    // Si al insertar se supera el límite, se elimina el registro más antiguo (la cabeza).
+    // Así el historial nunca ocupa más memoria en el heap de lo permitido.
     if (this.longitud > this.capacidadMaxima) this._descartarMasAntiguo();
     return nuevoNodo;
   }
@@ -43,11 +47,13 @@ class ListaDobleNavegacion {
    * @private
    */
   _descartarMasAntiguo() {
-    const viejo = this.cabeza;
-    this.cabeza = viejo.siguiente;
-    this.cabeza.anterior = null;
+    const viejo = this.cabeza;            // Registro más antiguo: será descartado
+    this.cabeza = viejo.siguiente;        // La nueva cabeza es el segundo nodo
+    this.cabeza.anterior = null;          // La nueva cabeza ya no apunta hacia atrás
+    // Si el cursor estaba justo en el nodo descartado, lo movemos a la nueva cabeza
+    // para que no quede apuntando a un nodo que ya no pertenece a la lista.
     if (this.actual === viejo) this.actual = this.cabeza;
-    viejo.siguiente = null;
+    viejo.siguiente = null;               // Cortamos el enlace para que el recolector de basura (GC) lo libere
     this.longitud--;
   }
 
@@ -122,6 +128,7 @@ class ListaDobleNavegacion {
    * @returns {boolean}
    */
   estaVacia() {
+    // Basta con mirar el contador: no hace falta recorrer ningún nodo.
     return this.longitud === 0;
   }
 
@@ -130,8 +137,8 @@ class ListaDobleNavegacion {
    * @returns {Object|null}
    */
   irAlInicio() {
-    this.actual = this.cabeza;
-    return this.obtenerActual();
+    this.actual = this.cabeza; // La lista guarda la cabeza, por eso el salto es directo
+    return this.obtenerActual(); // Devuelve el dato (o null si la lista está vacía)
   }
 
   /**
@@ -139,7 +146,7 @@ class ListaDobleNavegacion {
    * @returns {Object|null}
    */
   irAlFinal() {
-    this.actual = this.cola;
+    this.actual = this.cola; // La lista guarda la cola, por eso el salto es directo
     return this.obtenerActual();
   }
 
@@ -150,16 +157,20 @@ class ListaDobleNavegacion {
    * @returns {Object|null} Dato en esa posición o null si el índice es inválido.
    */
   irA(indice) {
+    // Índice inválido (no entero, negativo o fuera de rango): no se mueve el cursor.
     if (!Number.isInteger(indice) || indice < 0 || indice >= this.longitud) return null;
     let nodo;
     if (indice <= this.longitud / 2) {
+      // Primera mitad: se parte desde la cabeza y se avanza 'indice' veces.
       nodo = this.cabeza;
       for (let i = 0; i < indice; i++) nodo = nodo.siguiente;
     } else {
+      // Segunda mitad: se parte desde la cola y se retrocede hasta llegar al índice.
+      // Esto es posible gracias a que la lista es doble (tiene enlaces 'anterior').
       nodo = this.cola;
       for (let i = this.longitud - 1; i > indice; i--) nodo = nodo.anterior;
     }
-    this.actual = nodo;
+    this.actual = nodo; // Solo se actualiza el cursor cuando se encontró el nodo
     return nodo.dato;
   }
 
@@ -171,14 +182,14 @@ class ListaDobleNavegacion {
    */
   buscar(predicado) {
     let nodo = this.cabeza;
-    while (nodo) {
-      if (predicado(nodo.dato)) {
-        this.actual = nodo;
+    while (nodo) { // Recorre de cabeza a cola; en el peor caso revisa los n nodos
+      if (predicado(nodo.dato)) { // El predicado es una función que decide si el dato coincide
+        this.actual = nodo;       // Primera coincidencia: el cursor se coloca aquí
         return nodo.dato;
       }
       nodo = nodo.siguiente;
     }
-    return null;
+    return null; // Sin coincidencias: el cursor se queda donde estaba
   }
 
   /**
@@ -190,17 +201,22 @@ class ListaDobleNavegacion {
    */
   navegarA(dato) {
     if (this.actual) {
+      // 1. Se descarta todo lo que está "hacia adelante" del cursor, igual que un navegador
+      //    cuando abres una página nueva estando en medio del historial.
       let nodo = this.actual.siguiente;
       while (nodo) {
-        const sig = nodo.siguiente;
-        nodo.siguiente = null;
+        const sig = nodo.siguiente; // Guardamos el siguiente ANTES de cortar los enlaces
+        nodo.siguiente = null;      // Se cortan los enlaces para que el GC libere el nodo
         nodo.anterior = null;
         this.longitud--;
         nodo = sig;
       }
+      // 2. El nodo actual pasa a ser el último de la lista.
       this.actual.siguiente = null;
       this.cola = this.actual;
     }
+    // 3. Se agrega el nuevo registro al final y el cursor se coloca en él.
+    //    (Si había capacidad máxima, insertar() también descarta el más antiguo.)
     const nuevo = this.insertar(dato);
     this.actual = nuevo;
     return nuevo;
@@ -213,9 +229,11 @@ class ListaDobleNavegacion {
    */
   toArray(invertido = false) {
     const resultado = [];
+    // Punto de partida: la cola si se pide invertido, la cabeza en caso contrario.
     let nodo = invertido ? this.cola : this.cabeza;
     while (nodo) {
       resultado.push(nodo.dato);
+      // Dirección del recorrido: hacia atrás (anterior) o hacia adelante (siguiente).
       nodo = invertido ? nodo.anterior : nodo.siguiente;
     }
     return resultado;
@@ -227,11 +245,12 @@ class ListaDobleNavegacion {
   limpiar() {
     let nodo = this.cabeza;
     while (nodo) {
-      const sig = nodo.siguiente;
-      nodo.siguiente = null;
-      nodo.anterior = null;
+      const sig = nodo.siguiente; // Se guarda el siguiente antes de romper los enlaces
+      nodo.siguiente = null;      // Al no quedar referencias entre nodos,
+      nodo.anterior = null;       // el recolector de basura puede liberar la memoria
       nodo = sig;
     }
+    // La lista queda en el mismo estado que una recién creada (pero conserva su capacidad máxima).
     this.cabeza = this.cola = this.actual = null;
     this.longitud = 0;
   }
