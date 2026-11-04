@@ -48,61 +48,65 @@ describe('Pruebas Unitarias - Navegación Bidireccional (Avance 4 ABP)', () => {
     assert.equal(listaVacia.eliminarActual(), false);
   });
 
+  // Pruebas 6 a 12 (aporte Ricardo): funciones nuevas de ListaDobleNavegacion.
+  // La lista de cada prueba parte con 3 registros (101, 102, 103) gracias a beforeEach.
   describe('Nuevas funcionalidades', () => {
     test('6. irAlInicio / irAlFinal / estaVacia', () => {
-      assert.equal(lista.estaVacia(), false);
-      assert.equal(lista.irAlFinal().id, 103);
-      assert.equal(lista.irAlInicio().id, 101);
-      assert.equal(new ListaDobleNavegacion().estaVacia(), true);
+      assert.equal(lista.estaVacia(), false);                          // Tiene 3 registros
+      assert.equal(lista.irAlFinal().id, 103);                         // El último es el 103
+      assert.equal(lista.irAlInicio().id, 101);                        // El primero es el 101
+      assert.equal(new ListaDobleNavegacion().estaVacia(), true);      // Una lista nueva está vacía
     });
 
     test('7. irA(indice): acceso por posición y validación de límites', () => {
-      assert.equal(lista.irA(2).id, 103);
-      assert.equal(lista.irA(0).id, 101);
+      assert.equal(lista.irA(2).id, 103); // Segunda mitad: se recorre desde la cola
+      assert.equal(lista.irA(0).id, 101); // Primera mitad: se recorre desde la cabeza
       assert.equal(lista.irA(1).id, 102);
-      assert.equal(lista.irA(3), null);
-      assert.equal(lista.irA(-1), null);
+      assert.equal(lista.irA(3), null);   // Fuera de rango (solo existen 0, 1 y 2)
+      assert.equal(lista.irA(-1), null);  // Negativo: inválido
+      // Los índices inválidos no mueven el cursor: sigue en el último irA válido (102).
       assert.equal(lista.obtenerActual().id, 102);
     });
 
     test('8. buscar(predicado): mueve el cursor solo si encuentra coincidencia', () => {
-      assert.equal(lista.buscar(d => d.id === 103).accion, 'Exportar Reporte C');
-      assert.equal(lista.buscar(d => d.id === 999), null);
-      assert.equal(lista.obtenerActual().id, 103);
+      assert.equal(lista.buscar(d => d.id === 103).accion, 'Exportar Reporte C'); // Encuentra y mueve el cursor
+      assert.equal(lista.buscar(d => d.id === 999), null);                         // No existe: devuelve null
+      assert.equal(lista.obtenerActual().id, 103); // El cursor sigue en el 103 (la búsqueda fallida no lo movió)
     });
 
     test('9. navegarA: descarta el historial hacia adelante (estilo navegador)', () => {
-      lista.avanzar(); // 102
-      lista.navegarA({ id: 200, accion: 'Nueva Pestaña' });
-      assert.equal(lista.longitud, 3);
-      assert.equal(lista.obtenerActual().id, 200);
-      assert.equal(lista.avanzar(), null);
+      lista.avanzar(); // El cursor pasa al 102 (queda el 103 "hacia adelante")
+      lista.navegarA({ id: 200, accion: 'Nueva Pestaña' }); // El 103 se descarta y entra el 200
+      assert.equal(lista.longitud, 3);                       // 101, 102 y 200
+      assert.equal(lista.obtenerActual().id, 200);           // El cursor queda en el nuevo registro
+      assert.equal(lista.avanzar(), null);                   // Ya no hay nada hacia adelante
       assert.deepEqual(lista.toArray().map(d => d.id), [101, 102, 200]);
-      assert.equal(lista.retroceder().id, 102);
+      assert.equal(lista.retroceder().id, 102);              // Los enlaces hacia atrás siguen bien
     });
 
     test('10. toArray (normal e invertido) mantiene consistencia de punteros', () => {
-      assert.deepEqual(lista.toArray().map(d => d.id), [101, 102, 103]);
-      assert.deepEqual(lista.toArray(true).map(d => d.id), [103, 102, 101]);
+      assert.deepEqual(lista.toArray().map(d => d.id), [101, 102, 103]);       // Cabeza -> cola (usa 'siguiente')
+      assert.deepEqual(lista.toArray(true).map(d => d.id), [103, 102, 101]);   // Cola -> cabeza (usa 'anterior')
     });
 
     test('11. Capacidad máxima: descarta el registro más antiguo', () => {
-      const acotada = new ListaDobleNavegacion(2);
+      const acotada = new ListaDobleNavegacion(2); // Capacidad máxima: 2 registros
       acotada.insertar({ id: 1 });
       acotada.insertar({ id: 2 });
-      acotada.insertar({ id: 3 });
+      acotada.insertar({ id: 3 }); // Supera el límite: el 1 (el más antiguo) se descarta
       assert.equal(acotada.longitud, 2);
       assert.deepEqual(acotada.toArray().map(d => d.id), [2, 3]);
+      // El cursor estaba en el 1 (descartado), así que pasa a la nueva cabeza (el 2).
       assert.equal(acotada.obtenerActual().id, 2);
-      assert.equal(acotada.retroceder(), null);
-      assert.throws(() => new ListaDobleNavegacion(0), RangeError);
+      assert.equal(acotada.retroceder(), null); // Antes del 2 ya no hay nada
+      assert.throws(() => new ListaDobleNavegacion(0), RangeError); // Capacidad inválida
     });
 
     test('12. limpiar: deja la estructura vacía y reutilizable', () => {
       lista.limpiar();
-      assert.equal(lista.estaVacia(), true);
-      assert.equal(lista.obtenerActual(), null);
-      lista.insertar({ id: 1 });
+      assert.equal(lista.estaVacia(), true);        // No quedan registros
+      assert.equal(lista.obtenerActual(), null);    // El cursor también se reinició
+      lista.insertar({ id: 1 });                    // La lista se puede volver a usar sin problemas
       assert.equal(lista.obtenerActual().id, 1);
     });
   });

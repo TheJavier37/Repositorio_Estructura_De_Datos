@@ -16,17 +16,22 @@ console.log('Actual tras eliminar:', historial.obtenerActual());
 console.log('Longitud:', historial.longitud);
 
 // 6. Nuevas funcionalidades (Avance 4 - aporte Ricardo)
+// Demuestra: capacidad máxima, toArray, irA, buscar y navegarA.
 console.log('\n=== NUEVAS FUNCIONALIDADES ===');
-const navExtra = new ListaDobleNavegacion(5); // capacidad máxima: 5 registros
+const navExtra = new ListaDobleNavegacion(5); // Capacidad máxima: 5 registros (al pasar de 5 se borra el más antiguo)
 ['Inicio', 'Productos', 'Carrito', 'Pago'].forEach((accion, i) =>
   navExtra.insertar({ id: i + 1, accion })
 );
+// toArray() convierte la lista a arreglo; map/join lo muestran como "A <-> B <-> C"
 console.log('Historial:', navExtra.toArray().map(d => d.accion).join(' <-> '));
+// irA(2): salta a la posición 2 (base 0) => 'Carrito'
 console.log('irA(2):', navExtra.irA(2));
+// buscar(): halla el primer registro cuya acción sea 'Pago' y mueve el cursor allí
 console.log('buscar "Pago":', navExtra.buscar(d => d.accion === 'Pago'));
-navExtra.irA(1);
+navExtra.irA(1); // El cursor vuelve a 'Productos' (quedan Carrito y Pago "hacia adelante")
 navExtra.navegarA({ id: 9, accion: 'Ofertas' }); // descarta Carrito y Pago
 console.log('Tras navegarA:', navExtra.toArray().map(d => d.accion).join(' <-> '));
+// toArray(true) recorre desde la cola hacia la cabeza (usa los enlaces 'anterior')
 console.log('Invertido:', navExtra.toArray(true).map(d => d.accion).join(' <-> '));
 
 // Cola de revisión de triaje: el personal avanza y retrocede entre pacientes
