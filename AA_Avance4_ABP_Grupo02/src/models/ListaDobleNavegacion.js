@@ -109,6 +109,12 @@ class ListaDobleNavegacion {
       this.actual = nodoAEliminar.anterior;
     }
 
+    // Limpieza explícita si la lista queda totalmente vacía
+    if (!this.cabeza) {
+      this.cola = null;
+      this.actual = null;
+    }
+
     // Limpieza explícita de referencias (Garbage Collection Helper)
     nodoAEliminar.siguiente = null;
     nodoAEliminar.anterior = null;
